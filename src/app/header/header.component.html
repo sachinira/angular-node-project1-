@@ -4,8 +4,20 @@
     <span class="spacer"></span>
 
     <ul>
-        <li>
+        <li *ngIf="userIsAuthenticated" >
             <a mat-button routerLink='/content' routerLinkActive="mat-accent">NEW POSTS</a>
+            <!--thhis routerlink active can be used to show the currently active link and style that accordingly by assiging a css class-->
+        </li>
+        <li *ngIf="!userIsAuthenticated">
+                <a mat-button routerLink='/auth/login' routerLinkActive="mat-accent">LOGIN</a>
+                <!--thhis routerlink active can be used to show the currently active link and style that accordingly by assiging a css class-->
+        </li>
+        <li *ngIf="!userIsAuthenticated">
+                <a mat-button routerLink='/auth/signup' routerLinkActive="mat-accent">SIGNUP</a>
+                <!--thhis routerlink active can be used to show the currently active link and style that accordingly by assiging a css class-->
+        </li>
+        <li *ngIf="userIsAuthenticated">
+            <button mat-button (click)="onLogOut()" >LOGOUT</button>
             <!--thhis routerlink active can be used to show the currently active link and style that accordingly by assiging a css class-->
         </li>
     </ul>

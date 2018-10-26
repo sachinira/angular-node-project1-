@@ -3,6 +3,7 @@ import { Post } from '../post.model';
 import { PostService } from '../post.service';
 import { Subscription } from 'rxjs';
 import { PageEvent } from '@angular/material';
+import { AuthService } from 'src/app/auth/auth.service';
 
 @Component({
   selector: 'app-post-list',
@@ -17,34 +18,50 @@ export class PostListComponent implements OnInit,OnDestroy{
 
   private postSub:Subscription;
 
+  userId:string;
   totalPosts:number = 0;
   pageSize:number = 2;
   currentPage = 1;
   pageSizeOptions:number[] = [2,5,10,20];
 
 
-  constructor(public service:PostService) { }
+  public userIsAuthenticated = false;
+  private authListenerSub:Subscription;
+
+  constructor(private pservice:PostService, private aservice:AuthService) { }
 
   ngOnInit() {
 
     this.isLoading = true;
-    this.service.getPosts(this.pageSize,this.currentPage);
+    this.pservice.getPosts(this.pageSize,this.currentPage);
+    this.userId = this.aservice.getUserId();
+    //this.userId = localStorage.getItem('userId');
 
-    this.postSub =  this.service.getPostUpdateListener().subscribe
-    ((postData: { post:Post[],maxPosts:number} )=>{
+    this.postSub =  this.pservice.getPostUpdateListener().subscribe
+    ((postData: { post:Post[],maxPosts:number })=>{
         
         this.isLoading = false;
         this.posts = postData.post;
         this.totalPosts = postData.maxPosts;
       });
+      this.userIsAuthenticated = this.aservice.getIsAuth();
+
+    this.authListenerSub = this.aservice.getAuthstateListener()
+    .subscribe(isAuthenticted=>{
+      this.userIsAuthenticated = isAuthenticted;
+      this.userId = localStorage.getItem('userId'); //here the user data is  taken if user is authenticated i changed this to ge it directly from the localstorage
+    });
   }
 
 
   deletePost(id:string){
     
     this.isLoading = true;//we want to show the spinner when te deletion started
-    this.service.deletePost(id).subscribe(data=>{
-      this.service.getPosts(this.pageSize,this.currentPage)
+    this.pservice.deletePost(id).subscribe(data=>{
+      this.pservice.getPosts(this.pageSize,this.currentPage)
+    },
+    ()=>{
+      this.isLoading = false;
     });
   }
 
@@ -53,7 +70,7 @@ export class PostListComponent implements OnInit,OnDestroy{
     this.isLoading = true;
     this.currentPage = pageData.pageIndex+1;
     this.pageSize = pageData.pageSize;
-    this.service.getPosts(this.pageSize,this.currentPage);
+    this.pservice.getPosts(this.pageSize,this.currentPage);
     
     
   }
@@ -61,6 +78,7 @@ export class PostListComponent implements OnInit,OnDestroy{
   ngOnDestroy(){
 
     this.postSub.unsubscribe();
+    this.authListenerSub.unsubscribe();
     //remove subscription and remove memory leaks
   }
 

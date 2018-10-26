@@ -1,16 +1,18 @@
-import { Component, OnInit,EventEmitter,Output } from '@angular/core';
+import { Component, OnInit,EventEmitter,Output, OnDestroy } from '@angular/core';
 import { Post } from '../post.model';
 import { NgForm, FormGroup, FormControl, Validators } from '@angular/forms';
 import { PostService } from '../post.service';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { mimeType } from'./mime-type.validator';
+import { Subscription } from 'rxjs';
+import { AuthService } from 'src/app/auth/auth.service';
 
 @Component({
   selector: 'app-post-create',
   templateUrl: './post-create.component.html',
   styleUrls: ['./post-create.component.css']
 })
-export class PostCreateComponent implements OnInit {
+export class PostCreateComponent implements OnInit,OnDestroy {
 
   enteredTitle = '';
   enteredContent = '';
@@ -26,16 +28,21 @@ export class PostCreateComponent implements OnInit {
   private mode = 'create';
   private postId:string;
   isLoading = false;
+  authStatusSub:Subscription;
 
 
 
   //we can listen to the event outside the component  this may be the parent component
   //@Output() postCreated = new EventEmitter<Post>(); this is commented as we use the service to get the posts
 
-  constructor(public service:PostService,public route:ActivatedRoute) { }
+  constructor(public service:PostService,public route:ActivatedRoute,private aservice:AuthService) { }
 
   ngOnInit() {
 
+    this.authStatusSub = this.aservice.getAuthstateListener().subscribe(
+      athstatus =>{
+        this.isLoading = false;
+      });//whenever status is changing set it to false
 
 
     //create the form model here
@@ -76,7 +83,8 @@ export class PostCreateComponent implements OnInit {
               id: data._id, 
               title: data.title, 
               content: data.content, 
-              imagePath:data.imagePath
+              imagePath:data.imagePath,
+              creator:data.creator
             };
 
 
@@ -151,6 +159,10 @@ export class PostCreateComponent implements OnInit {
 
     //We ARE GOING TO LOAD THE POST CREAte componnent for two different paths with two differenet demostrations
 
+  }
+
+  ngOnDestroy(){
+    this.authStatusSub.unsubscribe();
   }
 
 }

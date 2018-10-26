@@ -4,13 +4,16 @@ import { Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { map, filter } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { environment } from "../../environments/environment";
+
+const BACKEND_URL = environment.apiUrl;//we create an angular environment file to create an environment variable
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class PostService {
 
-  baseUrl = 'http://localhost:3000'
 
   private posts:Post[] = [];
   private postsUpdated = new Subject<{post:Post[],maxPosts:number}>();
@@ -26,16 +29,21 @@ export class PostService {
 
     const queryParams = `?pagesize=${postsPerPage}&page=${page}`; //backtics allow to add dynamic parts to strings
 
-    this.http.get<{message:string,posts:any,count:number}>(this.baseUrl +'/api/posts'+ queryParams)
+    this.http.get<{message:string,posts:any,count:number}>(BACKEND_URL +'/posts'+ queryParams)
     .pipe(map((data)=>{
+
+      console.log(data);
+      
       //we made that to any because the server will not return a valid Post and we're going to convert it
       return {
         posts: data.posts.map(post =>{
+          
         return {
           title: post.title,  //HERE A JAVASCRIPT OBJECT IS RETURNED
           content:post.content,
           id:post._id, //when we get the posts to the frontned we have to use the imagepath too
-          imagePath: post.imagePath
+          imagePath: post.imagePath,
+          creator:post.creator //in the post information we are gettin from the server we are storing creator info
         };
         }),
         maxPosts: data.count
@@ -65,7 +73,7 @@ export class PostService {
     postData.append('image',image,title); //we are going to access this property in the single method in backend so the names should be same
     //this title will be used to create the filename in the backend
 
-    this.http.post<{message:string,post: Post}>(this.baseUrl+'/api/posts',postData).subscribe(
+    this.http.post<{message:string,post: Post}>(BACKEND_URL +'/posts',postData).subscribe(
       (data)=>{
 
         /*const post:Post = {
@@ -105,13 +113,14 @@ export class PostService {
           id: id,
           title: title,
           content: content,
-          imagePath : image  
+          imagePath : image,
+          creator: null //we have to keep this creator id when we update the post
         }
     }
 
     
     //when we are updating images we have to differ if we have a string image or file //if we have an image we have to send a json request if we got an object/image we have to send as formdata
-    this.http.put(this.baseUrl+'/api/posts/' + id ,postData)
+    this.http.put(BACKEND_URL+'/posts/' + id ,postData)
     .subscribe(data=>{
       console.log(data);
 
@@ -139,7 +148,7 @@ export class PostService {
   }
 
   deletePost(id:string){
-    return this.http.delete(this.baseUrl + '/api/posts/'+id);
+    return this.http.delete(BACKEND_URL + '/posts/'+id);
    /* .subscribe((data)=>{
       //we have to update the frontend when the posts are deleted
       const updatedPosts = this.posts.filter(post => post.id !== id);
@@ -158,7 +167,7 @@ export class PostService {
   getPost(id:string){
 
     //when we call an http code here it will be an asynchronous call so we can't return inside of a subscription
-    return this.http.get<{_id:string,title:string,content:string,imagePath:string}>(this.baseUrl+'/api/posts/'+id);
+    return this.http.get<{_id:string,title:string,content:string,imagePath:string,creator:string}>(BACKEND_URL+'/posts/'+id);
 
     //here in get posts we are not getting the imagpath to the front end in oninit
 

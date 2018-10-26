@@ -12,12 +12,14 @@
     </div>
 
     <p>{{post.content}}</p>
-    <mat-action-row>
+
+    <mat-action-row *ngIf="userIsAuthenticated && userId === post.creator">
         <a color="primary" mat-button [routerLink]="['/edit',post.id]" >EDIT</a>
         <!--This routerlink is binded to a property of routerlink wee describe individual segments of the path-->
         
         <button color="warn"  mat-button (click)="deletePost(post.id)" >DELETE</button>
     </mat-action-row>
+
   </mat-expansion-panel>
 </mat-accordion>
 
