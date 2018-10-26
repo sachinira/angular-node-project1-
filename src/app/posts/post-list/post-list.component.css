@@ -1,3 +1,20 @@
 .class1{
     text-align: center;
 }
+
+.mat-expansion-panel{
+    margin-top: 1rem;
+}
+
+.mat-paginator{
+    margin-top: 1rem; 
+}
+
+.image-preview{
+    width: 100%;
+}
+
+.image-preview img{
+    width: 100%; 
+    box-shadow:  1px 1px 5px rgba(0, 0, 0, 0.5)
+}
